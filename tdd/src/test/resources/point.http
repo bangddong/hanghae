@@ -1,0 +1,19 @@
+### 유저 포인트 조회
+GET http://127.0.0.1/point/1
+Accept: application/json
+
+### 유저 포인트 충전/이용 내역 조회
+GET http://127.0.0.1/point/1/histories
+Accept: application/json
+
+### 유저 포인트 충전
+PATCH http://127.0.0.1/point/1/charge
+Content-Type: application/json
+
+1000
+
+### 유저 포인트 사용
+PATCH http://127.0.0.1/point/1/use
+Content-Type: application/json
+
+100
