@@ -1,7 +1,9 @@
 package io.hhplus.tdd.point.controller;
 
-import io.hhplus.tdd.point.dto.PointHistory;
-import io.hhplus.tdd.point.dto.UserPoint;
+import io.hhplus.tdd.point.dto.PointHistoryResponse;
+import io.hhplus.tdd.point.dto.UserPointResponse;
+import io.hhplus.tdd.point.entity.PointHistory;
+import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.service.PointService;
 import io.hhplus.tdd.point.type.TransactionType;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -34,8 +37,10 @@ class PointControllerTest {
     void 유저_포인트_조회() throws Exception {
         // given
         long userId = 1L;
-        UserPoint userPoint = UserPoint.empty(userId);
-        when(pointService.getPoint(userId)).thenReturn(userPoint);
+
+        UserPointResponse userPointResponse = UserPointResponse.fromEntity(UserPoint.empty(userId));
+
+        when(pointService.getPoint(userId)).thenReturn(userPointResponse);
 
         // when & then
         mvc.perform(
@@ -44,7 +49,7 @@ class PointControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId))
                 .andExpect(jsonPath("$.point").value(0L))
-                .andExpect(jsonPath("$.updateMillis").exists())
+                .andExpect(jsonPath("$.updatedAt").exists())
                 .andDo(print());
     }
 
@@ -55,10 +60,11 @@ class PointControllerTest {
         long chargeAmount = 1000L;
         long useAmount = 100L;
 
-        List<PointHistory> histories = List.of(
+        List<PointHistoryResponse> histories = Stream.of(
                 new PointHistory(1L, userId, chargeAmount, TransactionType.CHARGE, System.currentTimeMillis()),
                 new PointHistory(2L, userId, useAmount, TransactionType.USE, System.currentTimeMillis())
-        );
+        ).map(PointHistoryResponse::fromEntity).toList();
+
         when(pointService.getHistories(userId)).thenReturn(histories);
 
         // when & then
@@ -71,12 +77,12 @@ class PointControllerTest {
                 .andExpect(jsonPath("$[0].userId").value(userId))
                 .andExpect(jsonPath("$[0].amount").value(chargeAmount))
                 .andExpect(jsonPath("$[0].type").value(TransactionType.CHARGE.name()))
-                .andExpect(jsonPath("$[0].updateMillis").exists())
+                .andExpect(jsonPath("$[0].updatedAt").exists())
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].userId").value(userId))
                 .andExpect(jsonPath("$[1].amount").value(useAmount))
                 .andExpect(jsonPath("$[1].type").value(TransactionType.USE.name()))
-                .andExpect(jsonPath("$[1].updateMillis").exists())
+                .andExpect(jsonPath("$[1].updatedAt").exists())
                 .andDo(print());
     }
 
@@ -85,8 +91,12 @@ class PointControllerTest {
         // given
         long userId = 1L;
         long chargeAmount = 1000L;
-        UserPoint userPoint = new UserPoint(userId, chargeAmount, System.currentTimeMillis());
-        when(pointService.charge(userId, chargeAmount)).thenReturn(userPoint);
+
+        UserPointResponse userPointResponse = UserPointResponse.fromEntity(
+                new UserPoint(userId, chargeAmount, System.currentTimeMillis())
+        );
+
+        when(pointService.charge(userId, chargeAmount)).thenReturn(userPointResponse);
 
         // when & then
         mvc.perform(
@@ -98,7 +108,7 @@ class PointControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(userId))
                 .andExpect(jsonPath("$.point").value(chargeAmount))
-                .andExpect(jsonPath("$.updateMillis").exists())
+                .andExpect(jsonPath("$.updatedAt").exists())
                 .andDo(print());
     }
 
@@ -107,8 +117,10 @@ class PointControllerTest {
         // given
         long userId = 1L;
         long useAmount = 100L;
-        UserPoint userPoint = UserPoint.empty(userId);
-        when(pointService.use(userId, useAmount)).thenReturn(userPoint);
+
+        UserPointResponse userPointResponse = UserPointResponse.fromEntity(UserPoint.empty(userId));
+
+        when(pointService.use(userId, useAmount)).thenReturn(userPointResponse);
 
         // when & then
         mvc.perform(
@@ -120,7 +132,7 @@ class PointControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(userId))
                 .andExpect(jsonPath("$.point").value(0))
-                .andExpect(jsonPath("$.updateMillis").exists())
+                .andExpect(jsonPath("$.updatedAt").exists())
                 .andDo(print());
     }
 
@@ -129,6 +141,7 @@ class PointControllerTest {
         // given
         long userId = 1L;
         long useAmount = 1000L;
+
         doThrow(new IllegalArgumentException("잔액이 부족합니다."))
                 .when(pointService).use(userId, useAmount);
 

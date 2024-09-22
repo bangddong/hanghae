@@ -1,9 +1,12 @@
 package io.hhplus.tdd.point.service;
 
-import io.hhplus.tdd.database.PointHistoryTable;
-import io.hhplus.tdd.database.UserPointTable;
-import io.hhplus.tdd.point.dto.PointHistory;
-import io.hhplus.tdd.point.dto.UserPoint;
+import io.hhplus.tdd.point.dto.PointHistoryResponse;
+import io.hhplus.tdd.point.dto.UserPointResponse;
+import io.hhplus.tdd.point.entity.UserPoint;
+import io.hhplus.tdd.point.service.manager.HistoryManager;
+import io.hhplus.tdd.point.service.manager.PointManager;
+import io.hhplus.tdd.point.service.reader.HistoryReader;
+import io.hhplus.tdd.point.service.reader.PointReader;
 import io.hhplus.tdd.point.type.TransactionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,31 +17,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PointService {
 
-    private final UserPointTable userPointTable;
-    private final PointHistoryTable pointHistoryTable;
+    private final PointReader pointReader;
+    private final HistoryReader historyReader;
+    private final PointManager pointManager;
+    private final HistoryManager historyManager;
 
-    public UserPoint getPoint(long id) {
-        return userPointTable.selectById(id);
+    public UserPointResponse getPoint(long id) {
+        return UserPointResponse.fromEntity(pointReader.read(id));
     }
 
-    public List<PointHistory> getHistories(long id) {
-        return pointHistoryTable.selectAllByUserId(id);
+    public List<PointHistoryResponse> getHistories(long id) {
+        return historyReader.read(id).stream()
+                .map(PointHistoryResponse::fromEntity)
+                .toList();
     }
 
-    public UserPoint charge(long id, long amount) {
-        UserPoint userPoint = userPointTable.selectById(id);
-        userPoint = userPointTable.insertOrUpdate(id, userPoint.point() + amount);
-        pointHistoryTable.insert(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
-        return userPoint;
+    public UserPointResponse charge(long id, long amount) {
+        final UserPoint updatedUserPoint = pointManager.charge(id, amount);
+        historyManager.append(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
+        return UserPointResponse.fromEntity(updatedUserPoint);
     }
 
-    public UserPoint use(long id, long amount) {
-        UserPoint userPoint = userPointTable.selectById(id);
-        if (userPoint.point() < amount) {
-            throw new IllegalArgumentException("잔액이 부족합니다.");
-        }
-        userPoint = userPointTable.insertOrUpdate(id, userPoint.point() - amount);
-        pointHistoryTable.insert(id, amount, TransactionType.USE, System.currentTimeMillis());
-        return userPoint;
+    public UserPointResponse use(long id, long amount) {
+        final UserPoint updatedUserPoint = pointManager.use(id, amount);
+        historyManager.append(id, amount, TransactionType.USE, System.currentTimeMillis());
+        return UserPointResponse.fromEntity(updatedUserPoint);
     }
 }
