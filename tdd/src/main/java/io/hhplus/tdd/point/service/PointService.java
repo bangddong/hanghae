@@ -27,9 +27,9 @@ public class PointService {
 
     public UserPoint charge(long id, long amount) {
         UserPoint userPoint = userPointTable.selectById(id);
-        userPointTable.insertOrUpdate(id, userPoint.point() + amount);
+        userPoint = userPointTable.insertOrUpdate(id, userPoint.point() + amount);
         pointHistoryTable.insert(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
-        return userPointTable.selectById(id);
+        return userPoint;
     }
 
     public UserPoint use(long id, long amount) {
@@ -37,8 +37,8 @@ public class PointService {
         if (userPoint.point() < amount) {
             throw new IllegalArgumentException("잔액이 부족합니다.");
         }
-        userPointTable.insertOrUpdate(id, userPoint.point() - amount);
+        userPoint = userPointTable.insertOrUpdate(id, userPoint.point() - amount);
         pointHistoryTable.insert(id, amount, TransactionType.USE, System.currentTimeMillis());
-        return userPointTable.selectById(id);
+        return userPoint;
     }
 }

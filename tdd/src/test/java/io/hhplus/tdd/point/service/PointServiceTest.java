@@ -109,15 +109,15 @@ class PointServiceTest {
         UserPoint initialUserPoint = new UserPoint(userId, initialPoints, System.currentTimeMillis());
         UserPoint updatedUserPoint = new UserPoint(userId, initialPoints - useAmount, System.currentTimeMillis());
 
-        when(userPointTable.selectById(userId))
-                .thenReturn(initialUserPoint)
-                .thenReturn(updatedUserPoint);
+        when(userPointTable.selectById(userId)).thenReturn(initialUserPoint);
+        when(userPointTable.insertOrUpdate(userId, useAmount)).thenReturn(updatedUserPoint);
 
         // When
         UserPoint result = pointService.use(userId, useAmount);
 
         // Then
         assertEquals(initialPoints - useAmount, result.point());
+        verify(userPointTable, times(1)).selectById(userId);
         verify(userPointTable, times(1))
                 .insertOrUpdate(eq(userId), eq(initialPoints - useAmount));
         verify(pointHistoryTable, times(1))
@@ -131,18 +131,16 @@ class PointServiceTest {
         long initialPoints = 1000L;
         long useAmount = 1500L;
 
-        UserPoint initialUserPoint = new UserPoint(userId, initialPoints, System.currentTimeMillis());
-        UserPoint updatedUserPoint = new UserPoint(userId, initialPoints - useAmount, System.currentTimeMillis());
+        UserPoint userPoint = new UserPoint(userId, initialPoints, System.currentTimeMillis());
 
-        when(userPointTable.selectById(userId))
-                .thenReturn(initialUserPoint)
-                .thenReturn(updatedUserPoint);
+        when(userPointTable.selectById(userId)).thenReturn(userPoint);
 
         // When & Then
         IllegalArgumentException exception =
                 assertThrows(IllegalArgumentException.class, () -> pointService.use(userId, useAmount));
 
         assertEquals("잔액이 부족합니다.", exception.getMessage());
+        verify(userPointTable).selectById(userId);
         verify(userPointTable, never()).insertOrUpdate(anyLong(), anyLong());
         verify(pointHistoryTable, never()).insert(anyLong(), anyLong(), any(), anyLong());
     }
