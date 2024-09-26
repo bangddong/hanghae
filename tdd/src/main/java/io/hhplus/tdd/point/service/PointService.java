@@ -1,7 +1,7 @@
 package io.hhplus.tdd.point.service;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.stereotype.Service;
 
@@ -24,7 +24,7 @@ public class PointService {
 	private final PointManager pointManager;
 	private final HistoryManager historyManager;
 
-	private final ConcurrentHashMap<Long, UserPoint> cache = new ConcurrentHashMap<>();
+	private final ReentrantLock lock = new ReentrantLock();
 
 	public UserPointResponse getPoint(long id) {
 		return UserPointResponse.fromEntity(pointReader.read(id));
@@ -37,23 +37,27 @@ public class PointService {
 	}
 
 	public UserPointResponse charge(long id, long amount) {
-		final UserPoint updatedUserPoint = cache.compute(id, (key, existingUserPoint) -> {
-			if (existingUserPoint == null) {
-				existingUserPoint = pointReader.read(id);
-			}
-			return pointManager.charge(id, amount);
-		});
+		final UserPoint updatedUserPoint;
+		lock.lock();
+		try {
+			updatedUserPoint = pointManager.charge(id, amount);
+		} finally {
+			lock.unlock();
+		}
+
 		historyManager.append(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
 		return UserPointResponse.fromEntity(updatedUserPoint);
 	}
 
 	public UserPointResponse use(long id, long amount) {
-		final UserPoint updatedUserPoint = cache.compute(id, (key, existingUserPoint) -> {
-			if (existingUserPoint == null) {
-				existingUserPoint = pointReader.read(id);
-			}
-			return pointManager.use(id, amount);
-		});
+		final UserPoint updatedUserPoint;
+		lock.lock();
+		try {
+			updatedUserPoint = pointManager.use(id, amount);
+		} finally {
+			lock.unlock();
+		}
+
 		historyManager.append(id, amount, TransactionType.USE, System.currentTimeMillis());
 		return UserPointResponse.fromEntity(updatedUserPoint);
 	}

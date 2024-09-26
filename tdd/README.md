@@ -82,53 +82,9 @@ public synchronized UserPointResponse charge(long id, long amount) { // synchron
 
 <br/>
 
-### ReentrantLock
-
-`Synchronized`와 같이 자바에서 제공하는 동기화 방법 중 하나입니다.
-
-다만, `Synchronized`와는 다르게 Lock을 직접 생성하여 사용할 수 있기 때문에 조금 더 세밀한 제어가 가능합니다.
-
-먼저 사용 방법부터가 다른데 `Synchronized`는 객체나 함수에 대해 Lock을 걸어 사용하는 방식이었다면  
-`ReentrantLock`은 Lock 객체를 생성하여 사용하며 명시적으로 `lock()`과 `unlock()`을 호출하여 사용합니다.
-
-따라서 Lock을 걸어야 하는 시점을 조금 더 세밀하게 제어할 수 있게 됩니다.
-
-또한, 공정성 설정이 가능하기 때문에 Queue와 같이 FIFO 방식으로 요청 순서에 따라 Lock을 획득하게 할 수 있으며  
-이는 순차적인 처리가 필요한 서비스에서 유용하게 사용될 수 있습니다.
-
-<br />  
-
-✅ 사용 예제
-
-```java
-private final Lock lock = new ReentrantLock();  // ReentrantLock 생성
-
-public UserPointResponse charge(long id, long amount) {
-	lock.lock();  // 락 획득
-	try {
-		final UserPoint updatedUserPoint = cache.compute(id, (key, existingUserPoint) -> {
-			if (existingUserPoint == null) {
-				existingUserPoint = pointReader.read(id);
-			}
-			return pointManager.charge(id, amount);
-		});
-		historyManager.append(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
-		return UserPointResponse.fromEntity(updatedUserPoint);
-	} finally {
-		lock.unlock();  // 반드시 락 해제
-	}
-}
-```
-
-<br />  
-
 ### ConcurrentHashMap
 
-이번 과제에서 동시성 제어를 위해 선택한 방법입니다.
-
-사실 동시성 제어에 대한 이해도도 높일겸 `ReentrantLock`을 사용하려 했으나 아직은 세밀하게 제어할만한  
-부분이 없다고 판단되고 쓰기 나름이지만 단순 읽기 작업에도 Lock을 걸어두는 것은 비효율적이라고 생각되어  
-ConcurrentHashMap을 사용하게 되었습니다.
+이번 과제에서 동시성 제어를 위해 처음 선택한 방법입니다만 순차성 처리는 보장되지 않아 사용하지 않게 되었습니다.
 
 ConcurrentHashMap은 `Bucket` 단위의 락과 `CAS`를 사용하여 동시성을 제어합니다.
 
@@ -195,3 +151,38 @@ public UserPointResponse charge(long id, long amount) {
 모든 요청이 단순 `read` 작업만 수행하거나 key로 사용되는 id가 다른 경우에는 Lock을 걸지않아 성능상 이점을 가져가면서도,   
 `cache.compute`와 같이 원자적으로 이루어져야 하는 작업에 대해서는 해당 노드에 Lock을 통해 `read` 또한 같이 접근할 수 없게 만들어  
 동시성 문제가 발생하지 않게 되는겁니다.
+
+### ReentrantLock
+
+`Synchronized`와 같이 자바에서 제공하는 동기화 방법 중 하나입니다.
+
+다만, `Synchronized`와는 다르게 Lock을 직접 생성하여 사용할 수 있기 때문에 조금 더 세밀한 제어가 가능합니다.
+
+먼저 사용 방법부터가 다른데 `Synchronized`는 객체나 함수에 대해 Lock을 걸어 사용하는 방식이었다면  
+`ReentrantLock`은 Lock 객체를 생성하여 사용하며 명시적으로 `lock()`과 `unlock()`을 호출하여 사용합니다.
+
+따라서 Lock을 걸어야 하는 시점을 조금 더 세밀하게 제어할 수 있게 됩니다.
+
+또한, 공정성 설정이 가능하기 때문에 Queue와 같이 FIFO 방식으로 요청 순서에 따라 Lock을 획득하게 할 수 있으며  
+이는 순차적인 처리가 필요한 서비스에서 유용하게 사용될 수 있습니다.
+
+<br />  
+
+✅ 사용 예제
+
+```java
+private final ReentrantLock lock = new ReentrantLock();  // ReentrantLock 생성
+
+public UserPointResponse charge(long id, long amount) {
+	final UserPoint updatedUserPoint;
+	lock.lock(); // 락 획득
+	try {
+		updatedUserPoint = pointManager.charge(id, amount);
+	} finally {
+		lock.unlock(); // 반드시 락 해제
+	}
+
+	historyManager.append(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
+	return UserPointResponse.fromEntity(updatedUserPoint);
+}
+```
