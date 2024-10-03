@@ -2,6 +2,8 @@ package com.hanghae.architecture.infrastructure;
 
 import com.hanghae.architecture.domain.lecture.Lecture;
 import com.hanghae.architecture.domain.lecture.Subject;
+import com.hanghae.architecture.infrastructure.repository.JpaLectureRepository;
+import com.hanghae.architecture.infrastructure.repository.LectureRepositoryJpaAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -13,13 +15,13 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-class LectureRepositoryImplTest {
+class LectureRepositoryJpaAdapterTest {
 
     @Mock
     private JpaLectureRepository jpaLectureRepository;
 
     @InjectMocks
-    private LectureRepositoryImpl lectureRepositoryImpl;
+    private LectureRepositoryJpaAdapter lectureRepositoryJpaAdapter;
 
     @BeforeEach
     public void setUp() {
@@ -33,7 +35,7 @@ class LectureRepositoryImplTest {
         when(jpaLectureRepository.findById(1L)).thenReturn(Optional.of(lecture));
 
         // When
-        Optional<Lecture> result = lectureRepositoryImpl.findById(1L);
+        Optional<Lecture> result = lectureRepositoryJpaAdapter.findById(1L);
 
         // Then
         assertEquals(Subject.JAVA, result.get().getSubject());

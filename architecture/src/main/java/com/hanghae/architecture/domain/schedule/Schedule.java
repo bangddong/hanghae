@@ -40,18 +40,6 @@ public class Schedule {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public boolean canReserve() {
-        return count < capacity;
-    }
-
-    public void reserve() {
-        if (canReserve()) {
-            count++;
-        } else {
-            throw new IllegalStateException("수강 인원이 초과되었습니다.");
-        }
-    }
-
     protected Schedule(Lecture lecture, LocalDate date, int count) {
         this.lecture = lecture;
         this.date = date;

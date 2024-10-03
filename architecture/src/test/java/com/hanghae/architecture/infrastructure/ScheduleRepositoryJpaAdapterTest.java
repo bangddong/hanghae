@@ -1,6 +1,8 @@
 package com.hanghae.architecture.infrastructure;
 
 import com.hanghae.architecture.domain.schedule.Schedule;
+import com.hanghae.architecture.infrastructure.repository.JpaScheduleRepository;
+import com.hanghae.architecture.infrastructure.repository.ScheduleRepositoryJpaAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -13,13 +15,13 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class ScheduleRepositoryImplTest {
+class ScheduleRepositoryJpaAdapterTest {
 
     @Mock
     private JpaScheduleRepository jpaScheduleRepository;
 
     @InjectMocks
-    private ScheduleRepositoryImpl scheduleRepositoryImpl;
+    private ScheduleRepositoryJpaAdapter scheduleRepositoryJpaAdapter;
 
     @BeforeEach
     public void setUp() {
@@ -33,7 +35,7 @@ class ScheduleRepositoryImplTest {
         when(jpaScheduleRepository.findAvailableSchedule()).thenReturn(List.of(schedule));
 
         // When
-        List<Schedule> result = scheduleRepositoryImpl.getScheduleList();
+        List<Schedule> result = scheduleRepositoryJpaAdapter.getScheduleList();
 
         // Then
         assertEquals(1, result.size());
@@ -47,7 +49,7 @@ class ScheduleRepositoryImplTest {
         when(jpaScheduleRepository.findById(1L)).thenReturn(Optional.of(schedule));
 
         // When
-        Optional<Schedule> result = scheduleRepositoryImpl.findById(1L);
+        Optional<Schedule> result = scheduleRepositoryJpaAdapter.findById(1L);
 
         // Then
         assertEquals(true, result.isPresent());

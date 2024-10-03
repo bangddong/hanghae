@@ -1,4 +1,4 @@
-package com.hanghae.architecture.infrastructure;
+package com.hanghae.architecture.infrastructure.repository;
 
 import com.hanghae.architecture.domain.reservation.Reservation;
 import com.hanghae.architecture.domain.reservation.ReservationRepository;
@@ -9,7 +9,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Repository
-public class ReservationRepositoryImpl implements ReservationRepository {
+public class ReservationRepositoryJpaAdapter implements ReservationRepository {
     private final JpaReservationRepository jpaReservationRepository;
 
     @Override
@@ -25,5 +25,10 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     @Override
     public void save(Reservation reservation) {
         jpaReservationRepository.save(reservation);
+    }
+
+    @Override
+    public long countByScheduleId(Long id) {
+        return jpaReservationRepository.countByScheduleId(id);
     }
 }

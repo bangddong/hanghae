@@ -4,6 +4,8 @@ import com.hanghae.architecture.domain.lecture.Lecture;
 import com.hanghae.architecture.domain.lecture.Subject;
 import com.hanghae.architecture.domain.reservation.Reservation;
 import com.hanghae.architecture.domain.schedule.Schedule;
+import com.hanghae.architecture.infrastructure.repository.JpaReservationRepository;
+import com.hanghae.architecture.infrastructure.repository.ReservationRepositoryJpaAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -16,13 +18,13 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class ReservationRepositoryImplTest {
+class ReservationRepositoryJpaAdapterTest {
 
     @Mock
     private JpaReservationRepository jpaReservationRepository;
 
     @InjectMocks
-    private ReservationRepositoryImpl reservationRepositoryImpl;
+    private ReservationRepositoryJpaAdapter reservationRepositoryJpaAdapter;
 
     @BeforeEach
     public void setUp() {
@@ -38,7 +40,7 @@ class ReservationRepositoryImplTest {
         when(jpaReservationRepository.findByUserId(1L)).thenReturn(List.of(reservation));
 
         // When
-        List<Reservation> result = reservationRepositoryImpl.findByUserId(1L);
+        List<Reservation> result = reservationRepositoryJpaAdapter.findByUserId(1L);
 
         // Then
         assertEquals(1, result.size());
@@ -51,7 +53,7 @@ class ReservationRepositoryImplTest {
         when(jpaReservationRepository.existsByUserIdAndScheduleId(1L, 2L)).thenReturn(true);
 
         // When
-        boolean result = reservationRepositoryImpl.existsByUserIdAndLecture(1L, 2L);
+        boolean result = reservationRepositoryJpaAdapter.existsByUserIdAndLecture(1L, 2L);
 
         // Then
         assertEquals(true, result);
@@ -66,7 +68,7 @@ class ReservationRepositoryImplTest {
         Reservation reservation = Reservation.of(1L, schedule);
 
         // When
-        reservationRepositoryImpl.save(reservation);
+        reservationRepositoryJpaAdapter.save(reservation);
 
         // Then
         verify(jpaReservationRepository, times(1)).save(reservation);
