@@ -26,4 +26,10 @@ public class RedisAdapter implements ReservationRedisManager {
         return ops.decrement(key);
     }
 
+    @Override
+    public boolean reserveOrAlready(long userId, long scheduleId) {
+        String key = "user:" + userId + ":schedule:" + scheduleId;
+        ValueOperations<String, String> ops = redisTemplate.opsForValue();
+        return ops.setIfAbsent(key, "1");
+    }
 }

@@ -18,11 +18,6 @@ public class ReservationRepositoryJpaAdapter implements ReservationRepository {
     }
 
     @Override
-    public boolean existsByUserIdAndLecture(long userId, long scheduleId) {
-        return jpaReservationRepository.existsByUserIdAndScheduleId(userId, scheduleId);
-    }
-
-    @Override
     public void save(Reservation reservation) {
         jpaReservationRepository.save(reservation);
     }
