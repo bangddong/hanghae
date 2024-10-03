@@ -48,19 +48,6 @@ class ReservationRepositoryJpaAdapterTest {
     }
 
     @Test
-    public void testExistsByUserIdAndLecture() {
-        // Given
-        when(jpaReservationRepository.existsByUserIdAndScheduleId(1L, 2L)).thenReturn(true);
-
-        // When
-        boolean result = reservationRepositoryJpaAdapter.existsByUserIdAndLecture(1L, 2L);
-
-        // Then
-        assertEquals(true, result);
-        verify(jpaReservationRepository, times(1)).existsByUserIdAndScheduleId(1L, 2L);
-    }
-
-    @Test
     public void testSave() {
         // Given
         Lecture lecture = Lecture.of("이석범", Subject.JAVA);

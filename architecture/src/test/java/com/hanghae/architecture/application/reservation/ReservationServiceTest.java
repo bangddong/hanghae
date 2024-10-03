@@ -1,6 +1,5 @@
 package com.hanghae.architecture.application.reservation;
 
-import com.hanghae.architecture.domain.lecture.Lecture;
 import com.hanghae.architecture.domain.reservation.Reservation;
 import com.hanghae.architecture.domain.reservation.ReservationRedisManager;
 import com.hanghae.architecture.domain.reservation.ReservationRepository;
@@ -30,7 +29,7 @@ class ReservationServiceTest {
     ScheduleRepository scheduleRepository;
 
     @Mock
-    private ReservationRedisManager reservationRedisManager;
+    ReservationRedisManager reservationRedisManager;
 
     @InjectMocks
     ReservationService reservationService;
@@ -69,10 +68,11 @@ class ReservationServiceTest {
         // Given
         ReserveRequest reserveRequest = mock(ReserveRequest.class);
         when(reserveRequest.scheduleId()).thenReturn(scheduleId);
-        when(reservationRepository.existsByUserIdAndLecture(userId, scheduleId)).thenReturn(false);
 
         Schedule schedule = mock(Schedule.class);
         when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
+        when(reservationRedisManager.reserveOrAlready(userId, scheduleId)).thenReturn(true);
 
         // When
         reservationService.reserve(userId, reserveRequest);
@@ -85,9 +85,12 @@ class ReservationServiceTest {
     public void 예약실패_이미_예약된_강의() {
         // Given
         ReserveRequest reserveRequest = mock(ReserveRequest.class);
-
         when(reserveRequest.scheduleId()).thenReturn(scheduleId);
-        when(reservationRepository.existsByUserIdAndLecture(userId, scheduleId)).thenReturn(true);
+
+        Schedule schedule = mock(Schedule.class);
+        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
+        when(reservationRedisManager.reserveOrAlready(userId, scheduleId)).thenReturn(false);
 
         // When & Then
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
@@ -119,8 +122,10 @@ class ReservationServiceTest {
         ReserveRequest reserveRequest = mock(ReserveRequest.class);
         when(reserveRequest.scheduleId()).thenReturn(scheduleId);
 
-        Schedule schedule = Schedule.of(mock(Lecture.class), null, 30);
+        Schedule schedule = mock(Schedule.class);
         when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+
+        when(reservationRedisManager.reserveOrAlready(userId, scheduleId)).thenReturn(true);
         when(reservationRedisManager.incrementCount(scheduleId)).thenReturn(31L);
 
         // When & Then
