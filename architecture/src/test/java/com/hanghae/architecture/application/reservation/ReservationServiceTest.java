@@ -2,6 +2,7 @@ package com.hanghae.architecture.application.reservation;
 
 import com.hanghae.architecture.domain.lecture.Lecture;
 import com.hanghae.architecture.domain.reservation.Reservation;
+import com.hanghae.architecture.domain.reservation.ReservationRedisManager;
 import com.hanghae.architecture.domain.reservation.ReservationRepository;
 import com.hanghae.architecture.domain.schedule.Schedule;
 import com.hanghae.architecture.domain.schedule.ScheduleRepository;
@@ -27,6 +28,9 @@ class ReservationServiceTest {
 
     @Mock
     ScheduleRepository scheduleRepository;
+
+    @Mock
+    private ReservationRedisManager reservationRedisManager;
 
     @InjectMocks
     ReservationService reservationService;
@@ -69,7 +73,6 @@ class ReservationServiceTest {
 
         Schedule schedule = mock(Schedule.class);
         when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
-        when(schedule.canReserve()).thenReturn(true);
 
         // When
         reservationService.reserve(userId, reserveRequest);
@@ -118,6 +121,7 @@ class ReservationServiceTest {
 
         Schedule schedule = Schedule.of(mock(Lecture.class), null, 30);
         when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+        when(reservationRedisManager.incrementCount(scheduleId)).thenReturn(31L);
 
         // When & Then
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
