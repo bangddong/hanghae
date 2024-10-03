@@ -32,13 +32,12 @@ public class ReservationService {
     public void reserve(long userId, ReserveRequest reserveRequest) {
         final long scheduleId = reserveRequest.scheduleId();
 
-        final boolean alreadyReserved = reservationRepository.existsByUserIdAndLecture(userId, scheduleId);
-        if (alreadyReserved) {
-            throw new IllegalStateException("이미 예약 된 강의입니다.");
-        }
-
         final Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("강의가 존재하지 않습니다."));
+
+        if (!reservationRedisManager.reserveOrAlready(userId, scheduleId)) {
+            throw new IllegalStateException("이미 예약 된 강의입니다.");
+        }
 
         long updatedCount = reservationRedisManager.incrementCount(scheduleId);
 

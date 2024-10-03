@@ -39,17 +39,16 @@ public class ReservationConcurrencyTest {
         redisTemplate.getConnectionFactory().getConnection().flushAll();
     }
 
-    private final long scheduleId = 1L;
-
     @Test
     public void 특강신청_동시성_테스트() throws InterruptedException {
+        long scheduleId = 1L;
         int totalRequests = 40;
         ExecutorService executorService = Executors.newFixedThreadPool(totalRequests);
         CountDownLatch latch = new CountDownLatch(totalRequests);
         AtomicInteger successfulReservations = new AtomicInteger(0);
         AtomicInteger failedReservations = new AtomicInteger(0);
 
-        for (int i = 0; i < totalRequests; i++) {
+        for (int i = 1; i <= totalRequests; i++) {
             final long userId = i;
             executorService.submit(() -> {
                 try {
@@ -73,5 +72,37 @@ public class ReservationConcurrencyTest {
 
         long reservationCount = reservationRepository.countByScheduleId(scheduleId);
         assertEquals(30, reservationCount);
+    }
+
+    @Test
+    public void 같은_유저_동시성_테스트() throws InterruptedException {
+        long scheduleId = 2L;
+        long userId = 0L;
+        int totalRequests = 5;
+        ExecutorService executorService = Executors.newFixedThreadPool(totalRequests);
+        CountDownLatch latch = new CountDownLatch(totalRequests);
+        AtomicInteger successfulReservations = new AtomicInteger(0);
+        AtomicInteger failedReservations = new AtomicInteger(0);
+
+        for (int i = 0; i < totalRequests; i++) {
+            executorService.submit(() -> {
+                try {
+                    reservationService.reserve(userId, new ReserveRequest(scheduleId));
+                    successfulReservations.incrementAndGet();
+                } catch (Exception e) {
+                    failedReservations.incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+
+        assertEquals(1, successfulReservations.get());
+        assertEquals(4, failedReservations.get());
+
+        long reservationCount = reservationRepository.findByUserId(userId).size();
+        assertEquals(1, reservationCount);
     }
 }
