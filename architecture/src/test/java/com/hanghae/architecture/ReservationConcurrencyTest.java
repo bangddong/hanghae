@@ -48,7 +48,7 @@ public class ReservationConcurrencyTest {
         AtomicInteger successfulReservations = new AtomicInteger(0);
         AtomicInteger failedReservations = new AtomicInteger(0);
 
-        for (int i = 0; i < totalRequests; i++) {
+        for (int i = 1; i <= totalRequests; i++) {
             final long userId = i;
             executorService.submit(() -> {
                 try {
@@ -77,6 +77,7 @@ public class ReservationConcurrencyTest {
     @Test
     public void 같은_유저_동시성_테스트() throws InterruptedException {
         long scheduleId = 2L;
+        long userId = 0L;
         int totalRequests = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(totalRequests);
         CountDownLatch latch = new CountDownLatch(totalRequests);
@@ -86,7 +87,7 @@ public class ReservationConcurrencyTest {
         for (int i = 0; i < totalRequests; i++) {
             executorService.submit(() -> {
                 try {
-                    reservationService.reserve(1L, new ReserveRequest(scheduleId));
+                    reservationService.reserve(userId, new ReserveRequest(scheduleId));
                     successfulReservations.incrementAndGet();
                 } catch (Exception e) {
                     failedReservations.incrementAndGet();
@@ -101,7 +102,7 @@ public class ReservationConcurrencyTest {
         assertEquals(1, successfulReservations.get());
         assertEquals(4, failedReservations.get());
 
-        long reservationCount = reservationRepository.countByScheduleId(scheduleId);
+        long reservationCount = reservationRepository.findByUserId(userId).size();
         assertEquals(1, reservationCount);
     }
 }
