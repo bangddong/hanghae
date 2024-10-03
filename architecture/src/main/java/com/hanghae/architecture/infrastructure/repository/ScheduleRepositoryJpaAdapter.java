@@ -1,4 +1,4 @@
-package com.hanghae.architecture.infrastructure;
+package com.hanghae.architecture.infrastructure.repository;
 
 import com.hanghae.architecture.domain.schedule.Schedule;
 import com.hanghae.architecture.domain.schedule.ScheduleRepository;
@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class ScheduleRepositoryImpl implements ScheduleRepository {
+public class ScheduleRepositoryJpaAdapter implements ScheduleRepository {
     private final JpaScheduleRepository jpaScheduleRepository;
 
     @Override
@@ -21,5 +21,20 @@ public class ScheduleRepositoryImpl implements ScheduleRepository {
     @Override
     public Optional<Schedule> findById(long scheduleId) {
         return jpaScheduleRepository.findById(scheduleId);
+    }
+
+    @Override
+    public void incrementCount(long scheduleId) {
+        jpaScheduleRepository.incrementCount(scheduleId);
+    }
+
+    @Override
+    public long getCountByScheduleId(Long id) {
+        return jpaScheduleRepository.countByScheduleId(id);
+    }
+
+    @Override
+    public void save(Schedule schedule) {
+        jpaScheduleRepository.save(schedule);
     }
 }

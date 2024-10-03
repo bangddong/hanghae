@@ -1,4 +1,4 @@
-package com.hanghae.architecture.infrastructure;
+package com.hanghae.architecture.infrastructure.repository;
 
 import com.hanghae.architecture.domain.lecture.Lecture;
 import com.hanghae.architecture.domain.lecture.LectureRepository;
@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Repository
-public class LectureRepositoryImpl implements LectureRepository {
+public class LectureRepositoryJpaAdapter implements LectureRepository {
     private final JpaLectureRepository jpaLectureRepository;
 
     @Override
