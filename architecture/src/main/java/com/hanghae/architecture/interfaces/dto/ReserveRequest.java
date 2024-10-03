@@ -1,6 +1,6 @@
 package com.hanghae.architecture.interfaces.dto;
 
 public record ReserveRequest(
-        long lectureId
+        long scheduleId
 ) {
 }

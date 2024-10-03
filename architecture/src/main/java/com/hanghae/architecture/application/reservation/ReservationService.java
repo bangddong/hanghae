@@ -1,9 +1,9 @@
 package com.hanghae.architecture.application.reservation;
 
-import com.hanghae.architecture.domain.lecture.Lecture;
-import com.hanghae.architecture.domain.lecture.LectureRepository;
 import com.hanghae.architecture.domain.reservation.Reservation;
 import com.hanghae.architecture.domain.reservation.ReservationRepository;
+import com.hanghae.architecture.domain.schedule.Schedule;
+import com.hanghae.architecture.domain.schedule.ScheduleRepository;
 import com.hanghae.architecture.interfaces.dto.ReservationResponse;
 import com.hanghae.architecture.interfaces.dto.ReserveRequest;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.List;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
-    private final LectureRepository lectureRepository;
+    private final ScheduleRepository scheduleRepository;
 
     public List<ReservationResponse> getReservations(long userId) {
         return reservationRepository.findByUserId(userId)
@@ -26,20 +26,18 @@ public class ReservationService {
     }
 
     public void reserve(long userId, ReserveRequest reserveRequest) {
-        long lectureId = reserveRequest.lectureId();
-        final Lecture lecture = lectureRepository.findById(lectureId)
-                .orElseThrow(() -> new IllegalArgumentException("강의가 존재하지 않습니다."));
+        final long scheduleId = reserveRequest.scheduleId();
 
-        long currentCapacity = reservationRepository.countByLecture(lecture);
-        if (currentCapacity >= lecture.getCapacity()) {
-            throw new IllegalStateException("수강 신청 인원이 초과하였습니다.");
-        }
-
-        boolean alreadyReserved = reservationRepository.existsByUserIdAndLecture(userId, lecture);
+        final boolean alreadyReserved = reservationRepository.existsByUserIdAndLecture(userId, scheduleId);
         if (alreadyReserved) {
             throw new IllegalStateException("이미 예약 된 강의입니다.");
         }
 
-        reservationRepository.save(Reservation.of(userId, lecture));
+        final Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("강의가 존재하지 않습니다."));
+
+        schedule.reserve();
+
+        reservationRepository.save(Reservation.of(userId, schedule));
     }
 }

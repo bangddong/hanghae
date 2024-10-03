@@ -1,11 +1,13 @@
 package com.hanghae.architecture.domain.lecture;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
-import org.hibernate.annotations.ColumnDefault;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Lecture {
 
     @Id
@@ -19,7 +21,16 @@ public class Lecture {
     @Enumerated(EnumType.STRING)
     private Subject subject;
 
-    @ColumnDefault("30")
-    private int capacity;
+    protected Lecture(String tutor, Subject subject) {
+        this.tutor = tutor;
+        this.subject = subject;
+    }
+
+    public static Lecture of(String tutor, Subject subject) {
+        return new Lecture(
+                tutor,
+                subject
+        );
+    }
 
 }

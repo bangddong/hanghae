@@ -1,7 +1,8 @@
 package com.hanghae.architecture.domain.reservation;
 
-import com.hanghae.architecture.domain.lecture.Lecture;
+import com.hanghae.architecture.domain.schedule.Schedule;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 public class Reservation {
 
@@ -24,8 +25,8 @@ public class Reservation {
     private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lecture_id", nullable = false)
-    private Lecture lecture;
+    @JoinColumn(name = "schedule_id", nullable = false)
+    private Schedule schedule;
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -33,13 +34,13 @@ public class Reservation {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    protected Reservation(long userId, Lecture lecture) {
+    protected Reservation(long userId, Schedule schedule) {
         this.userId = userId;
-        this.lecture = lecture;
+        this.schedule = schedule;
     }
 
-    public static Reservation of(long userId, Lecture lecture) {
-        return new Reservation(userId, lecture);
+    public static Reservation of(long userId, Schedule schedule) {
+        return new Reservation(userId, schedule);
     }
 
 }

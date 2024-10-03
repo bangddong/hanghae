@@ -1,6 +1,5 @@
 package com.hanghae.architecture.infrastructure;
 
-import com.hanghae.architecture.domain.lecture.Lecture;
 import com.hanghae.architecture.domain.reservation.Reservation;
 import com.hanghae.architecture.domain.reservation.ReservationRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,17 +18,12 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public long countByLecture(Lecture lecture) {
-        return jpaReservationRepository.countByLecture(lecture);
+    public boolean existsByUserIdAndLecture(long userId, long scheduleId) {
+        return jpaReservationRepository.existsByUserIdAndScheduleId(userId, scheduleId);
     }
 
     @Override
-    public boolean existsByUserIdAndLecture(long userId, Lecture lecture) {
-        return jpaReservationRepository.existsByUserIdAndLecture(userId, lecture);
-    }
-
-    @Override
-    public void save(Reservation of) {
-        jpaReservationRepository.save(of);
+    public void save(Reservation reservation) {
+        jpaReservationRepository.save(reservation);
     }
 }

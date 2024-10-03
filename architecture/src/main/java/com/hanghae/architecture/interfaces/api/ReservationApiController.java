@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
 @RequestMapping("/reservation")
+@RestController
 @RequiredArgsConstructor
 public class ReservationApiController {
 
@@ -20,15 +20,13 @@ public class ReservationApiController {
 
     private final ReservationService reservationService;
 
-    // TODO - 특강 신청여부 조회
     @GetMapping("{id}")
     public ResponseEntity<List<ReservationResponse>> history(
-            @PathVariable(name = "id") long id
+            @PathVariable(name = "id") long userId
     ) {
-        return ResponseEntity.ok(reservationService.getReservations(id));
+        return ResponseEntity.ok(reservationService.getReservations(userId));
     }
 
-    // TODO - 특강 신청
     @PostMapping("{id}")
     public ResponseEntity<Void> reserve(
             @PathVariable(name = "id") long userId,
