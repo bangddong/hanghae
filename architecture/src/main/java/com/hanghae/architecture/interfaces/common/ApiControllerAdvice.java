@@ -1,4 +1,4 @@
-package com.hanghae.architecture.infrastructure.response;
+package com.hanghae.architecture.interfaces.common;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
