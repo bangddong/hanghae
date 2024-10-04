@@ -1,4 +1,4 @@
-package com.hanghae.architecture.common.response;
+package com.hanghae.architecture.infrastructure.response;
 
 public record ErrorResponse(
         String code,
